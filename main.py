@@ -90,7 +90,7 @@ def main():
     torch.set_float32_matmul_precision('medium')  # 또는 'high'
     set_seed(26)
 
-    model_name = "resnet152"
+    model_name = "convnext_base"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # 사용자 정의 dataset 준비
@@ -101,15 +101,16 @@ def main():
     num_classes = 4
     lightning_model = MammoClassifier(model_name=model_name, num_classes=num_classes, class_weights=data_module.class_weights.to(device))
 
-    checkpoint_cb = ModelCheckpoint(dirpath='Project/Mammo/checkpoints/', filename=f"{model_name}-" + "{epoch}-{acc:.3f}",
-                                    monitor='val_loss', mode='min', save_top_k=3, verbose=True)
+    checkpoint_acc = ModelCheckpoint(dirpath='Project/Mammo/checkpoints/', filename=f"{model_name}-" + "{epoch}-{val_acc:.2f}",
+                                    monitor='val_acc', mode='max', save_top_k=3, verbose=True)
     early_stop_cb = EarlyStopping(monitor='val_loss', mode='min', patience=20, verbose=True)
 
     trainer = pl.Trainer(
+        default_root_dir="Project/Mammo/logs",
         max_epochs=200, min_epochs=155,
         accelerator='gpu' if torch.cuda.is_available() else 'cpu',
         devices='auto', strategy='ddp',
-        callbacks=[checkpoint_cb, early_stop_cb],
+        callbacks=[checkpoint_acc, early_stop_cb],
         log_every_n_steps=10
     )
 

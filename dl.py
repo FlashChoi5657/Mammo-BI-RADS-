@@ -28,7 +28,7 @@ class MammoNpyDataset(Dataset):
         image = np.load(file_path)  # shape: (H, W, 4)
         label = row['class'] - 1
 
-        if self.transform():
+        if self.transform:
             image = Image.fromarray(image)
             image = self.transform(image)
 
@@ -57,10 +57,10 @@ class MammoDataModule(pl.LightningDataModule):
                             ])
         
         if stage == 'fit' or stage is None:
-            self.train_dataset = MammoNpyDataset(self.root_dir, split='train', transform=transform_train, image_size=self.image_size)
-            self.val_dataset = MammoNpyDataset(self.root_dir, split='val', transform=transform_val, image_size=self.image_size)
+            self.train_dataset = MammoNpyDataset(self.root_dir, split='train', transform=transform_train, image_size=self.size)
+            self.val_dataset = MammoNpyDataset(self.root_dir, split='val', transform=transform_val, image_size=self.size)
         if stage == 'test' or stage is None:
-            self.test_dataset = MammoNpyDataset(self.root_dir, split='test', transform=transform_val, image_size=self.image_size)
+            self.test_dataset = MammoNpyDataset(self.root_dir, split='test', transform=transform_val, image_size=self.size)
         
         labels = self.train_dataset.labels_df['class'].values - 1  # 클래스가 1부터 시작한다면 조정
         class_weights = compute_class_weight('balanced', classes=np.unique(labels), y=labels)
